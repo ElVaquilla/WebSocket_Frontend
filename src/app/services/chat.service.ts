@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { ChatMessage } from '../models/chatMessage.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class ChatService {
   }
 
   getMessage() {
-    return this.socket.fromEvent<string>('message-receive');
+    return this.socket.fromEvent<ChatMessage>('message-receive');
     
   }
 }

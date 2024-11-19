@@ -4,9 +4,6 @@ import { ChatService } from '../../services/chat.service';
 import { FormsModule } from '@angular/forms';
 import { ChatMessage } from '../../models/chatMessage.model'; 
 
-
-
-
 @Component({
   selector: 'app-chat',
   standalone: true,
@@ -15,11 +12,17 @@ import { ChatMessage } from '../../models/chatMessage.model';
     FormsModule
   ],
   templateUrl: './chat.component.html',
-  styleUrl: './chat.component.css'
+  styleUrls: ['./chat.component.css']
 })
 export class ChatComponent implements OnInit {
-  message: string = '';
-  messages: ChatMessage[] = []; ;
+  text: string = '';
+  messages: ChatMessage[] = [];
+  message: ChatMessage = {
+    text: '',
+    type: 'sent',
+    username: '',
+    timestamp: '',
+  }
 
   constructor(private chatService: ChatService) {}
 
@@ -28,21 +31,34 @@ export class ChatComponent implements OnInit {
   }
 
   sendMessage(): void {
-    if (this.message) {
-      this.messages.push({ text: this.message, type: 'sent' });;
-      this.chatService.sendMessage(this.message);
-      this.message = '';
-      this.scrollToBottom(); // Forzar el scroll hacia abajo
-
+    if (this.text) {
+      this.message = {
+        text: this.text,
+        type: 'sent',
+        username: '', // Asigna el usuario actual si es necesario
+        timestamp: new Date().toISOString()
+      };
+      this.messages.push(this.message);
+      this.chatService.sendMessage(JSON.stringify(this.message));
+      this.text = '';
+      this.scrollToBottom();
     }
   }
 
-  listMessage(){
-    this.chatService.getMessage().subscribe((data) => {
-      console.log('Mensaje recibido:', data);
-      this.messages.push({ text: data, type: 'received' });
-      console.log(data);
-      this.scrollToBottom(); // Forzar el scroll hacia abajo cuando se recibe un mensaje
+  listMessage(): void {
+    this.chatService.getMessage().subscribe((data: ChatMessage) => {
+      if (data.text && data.username && data.timestamp) {
+        console.log('Mensaje recibido:', data);
+        this.messages.push({ 
+          text: data.text, 
+          type: 'received', 
+          username: data.username, 
+          timestamp: data.timestamp 
+        });
+        this.scrollToBottom();
+      } else {
+        console.error('Mensaje recibido con formato incorrecto:', data);
+      }
     });
   }
   
@@ -52,7 +68,6 @@ export class ChatComponent implements OnInit {
       messageContainer.scrollTop = messageContainer.scrollHeight;
     }
   }
-
 }
 
 
